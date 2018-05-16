@@ -3,15 +3,16 @@ const mongoose = require("mongoose");
 const helmet = require("helmet");
 const session = require("express-session");
 const MongoStore = require("connect-mongo")(session);
+const passport = require("passport");
 // global middleware that will require login on restricted pages
-const authenticate = require("./middleware/authenticate");
+// const authenticate = require("./middleware/authenticate");
 const validateLogin = require("./middleware/login");
 
 // connect to mongodb
 mongoose
-	.connect("mongodb://localhost/authNdb")
+	.connect("mongodb://localhost/jwtauth")
 	.then(connection => {
-		console.log("\n===connected to mongo===\n");
+		console.log("\n===connected to jwtauth Database===\n");
 	})
 	.catch(err => {
 		console.log("error connecting to mongo", err);
@@ -50,9 +51,14 @@ server.use(
 
 // passport global middleware
 passport.use(validateLogin);
+// passport.use(jwtStrategy);
 
 // passport local middleware
+const passportOptions = {
+	session: false
+};
 const authenticate = passport.authenticate("local", passportOptions); // invokes req.login()
+// const protected = passport.authenticate("jswt", passportOptions);
 
 // routes
 server.get("/", (req, res) => {
@@ -70,7 +76,7 @@ server.use("/api/login", authenticate, Login);
 // log a user out of the current session
 server.use("/api/logout", Logout);
 // send an array of all users in the database
-server.use("/api/restricted/users", authenticate, Users);
+server.use("/api/restricted/users", Users);
 
 server.listen(5000, () => {
 	console.log("\n===api running on 5000===\n");
