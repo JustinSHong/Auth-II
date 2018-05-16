@@ -4,7 +4,8 @@ const helmet = require("helmet");
 const session = require("express-session");
 const MongoStore = require("connect-mongo")(session);
 // global middleware that will require login on restricted pages
-const authMiddleware = require("./middleware/authenticate");
+const authenticate = require("./middleware/authenticate");
+const validateLogin = require("./middleware/login");
 
 // connect to mongodb
 mongoose
@@ -47,6 +48,12 @@ server.use(
 	})
 );
 
+// passport global middleware
+passport.use(validateLogin);
+
+// passport local middleware
+const authenticate = passport.authenticate("local", passportOptions); // invokes req.login()
+
 // routes
 server.get("/", (req, res) => {
 	if (req.session && req.session.username) {
@@ -59,11 +66,11 @@ server.get("/", (req, res) => {
 // create a user with a hashed password
 server.use("/api/register", Register);
 // validate login and create a new session for a user
-server.use("/api/login", Login);
+server.use("/api/login", authenticate, Login);
 // log a user out of the current session
 server.use("/api/logout", Logout);
 // send an array of all users in the database
-server.use("/api/restricted/users", authMiddleware.authenticate, Users);
+server.use("/api/restricted/users", authenticate, Users);
 
 server.listen(5000, () => {
 	console.log("\n===api running on 5000===\n");
