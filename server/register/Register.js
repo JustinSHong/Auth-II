@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const User = require("../users/userModel");
+const makeToken = require("../middleware/makeToken");
 
 router.post("/", (req, res) => {
 	// instantiate a new user with the given user data
@@ -8,8 +9,9 @@ router.post("/", (req, res) => {
 	user
 		.save()
 		.then(user => {
-			// return a user with a hashed password
-			res.status(201).send(user);
+			// create a token
+			const token = makeToken(user);
+			res.status(201).send({ user, token });
 		})
 		.catch(err => {
 			res.status(500).send(err);
