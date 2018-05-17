@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const secret = "that is what I shared yesterday lol";
 
 // helper function
-const makeToken = function makeToken(user) {
+const makeToken = function(user) {
 	const timestamp = new Date().getTime();
 	const payload = {
 		sub: user._id, // subject - who the token refers to

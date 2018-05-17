@@ -7,7 +7,6 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const localStrategy = require("./middleware/login");
 const jwtStrategy = require("./middleware/jwtStrategy");
-
 // connect to mongodb
 mongoose
 	.connect("mongodb://localhost/jwtauth")
