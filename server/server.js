@@ -2,11 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const session = require("express-session");
-const MongoStore = require("connect-mongo")(session);
+// const MongoStore = require("connect-mongo")(session);
 const passport = require("passport");
-// global middleware that will require login on restricted pages
-// const authenticate = require("./middleware/authenticate");
-const validateLogin = require("./middleware/login");
+const jwt = require("jsonwebtoken");
+const localStrategy = require("./middleware/login");
+const jwtStrategy = require("./middleware/jwtStrategy");
 
 // connect to mongodb
 mongoose
@@ -29,36 +29,17 @@ const server = express();
 // middleware
 server.use(express.json());
 server.use(helmet());
-// express-session configuration
-server.use(
-	session({
-		secret: "M2346eZhJM3Np1v8vTZdJRImHSkIIyf2kbIM5h+VuABXaFJAX96KyXKxX8pU+h8F",
-		cookie: {
-			maxAge: 1 * 24 * 60 * 60 * 1000
-		},
-		httpOnly: true,
-		secure: false,
-		resave: true,
-		saveUninitialized: false,
-		resave: false,
-		name: "noname",
-		store: new MongoStore({
-			url: "mongodb://localhost/sessions",
-			ttl: 60 * 10
-		})
-	})
-);
 
 // passport global middleware
-passport.use(validateLogin);
-// passport.use(jwtStrategy);
+passport.use(localStrategy);
+passport.use(jwtStrategy);
 
 // passport local middleware
 const passportOptions = {
 	session: false
 };
 const authenticate = passport.authenticate("local", passportOptions); // invokes req.login()
-// const protected = passport.authenticate("jswt", passportOptions);
+const protected = passport.authenticate("jwt", passportOptions);
 
 // routes
 server.get("/", (req, res) => {
@@ -76,7 +57,7 @@ server.use("/api/login", authenticate, Login);
 // log a user out of the current session
 server.use("/api/logout", Logout);
 // send an array of all users in the database
-server.use("/api/restricted/users", Users);
+server.use("/api/protected/users", protected, Users);
 
 server.listen(5000, () => {
 	console.log("\n===api running on 5000===\n");
